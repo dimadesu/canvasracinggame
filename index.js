@@ -18,13 +18,51 @@
 		pauseTS,
 		secPlayed,
 		car,
-		wall,
+		walls,
+		defaultWall,
 		wallsAvoided,
 		isGameOver,
 		isPaused,
 		pauseTimeoutId,
 		keysUp,
 		keysDown;
+
+	
+
+	function getSecPlayed () {
+
+		return secPlayed = (Date.now() - startTS) / 1000;
+
+	}
+
+	function createWall() {
+
+		var wall = $.extend({}, defaultWall);
+
+		// Wall width
+
+		var proportion = 10;
+
+		wall.width = wall.initialWidth + (wall.initialWidth / proportion * getSecPlayed());
+
+		if (wall.width >= wall.maxWidth) {
+			wall.width = wall.maxWidth;
+		}
+
+		// Wall placement
+
+		wall.x = Math.random() * (canvas.width - wall.width);
+
+		// Wall bgColor
+
+		var randomColor1 = Math.round(Math.random() * 255);
+		var randomColor2 = Math.round(Math.random() * 255);
+		var randomColor3 = Math.round(Math.random() * 255);
+		wall.bgColor = 'rgb('+randomColor1+','+randomColor2+','+randomColor3+')';
+
+		return wall;
+
+	}
 
 	function initVars () {
 
@@ -36,22 +74,28 @@
 			speed: 1000, // movement in pixels per second
 			width: 60,
 			height: 100,
-			bgColor: "red"
+			bgColor: "#c00"
 		};
 
 		car.x = canvas.width / 2 - car.width / 2;
 		car.y = canvas.height - car.height;
 
-		wall = {
+		// Walls
+
+		defaultWall = {
 			x: 0,
 			y: 0,
 			width: 100,
 			height: 100,
-			bgColor: "green"
+			bgColor: "purple"
 		};
 
-		wall.initialWidth = wall.width;
-		wall.maxWidth = canvas.width - (car.width * 2);
+		defaultWall.y = -defaultWall.height;
+
+		defaultWall.initialWidth = defaultWall.width;
+		defaultWall.maxWidth = canvas.width * 60 / 100;
+
+		walls = [createWall()];
 
 		wallsAvoided = 0;
 		isGameOver = false;
@@ -59,8 +103,9 @@
 		pauseTimeoutId = undefined;
 
 		// Handle keyboard controls
-		keysDown = {},
+		keysDown = {};
 		keysUp = {};
+
 	}
 
 	window.addEventListener("keydown", function (e) {
@@ -76,14 +121,7 @@
 	// Reset the game when the player catches a wall
 	function reset () {
 		initVars();
-		resetWall();
 	};
-
-	function resetWall () {
-		// Throw the wall somewhere on the screen randomly
-		wall.x = Math.random() * (canvas.width - wall.width);
-		wall.y = 0 - wall.height;
-	}
 
 	function doOverlap(l1, r1, l2, r2) {
 	    // If one rectangle is on left side of other
@@ -122,13 +160,14 @@
 			if (isGameOver) {
 				reset();
 			} else {
-				// Pause
 				
+				// Pause
 				isPaused = !isPaused;
 
 				if (isPaused) {
 					pauseTS = Date.now();
 				} else {
+					// Unpaused
 					var millisecondsPassed = Date.now() - pauseTS;
 					startTS = startTS + millisecondsPassed;
 				}
@@ -143,10 +182,10 @@
 
 		// Car
 
-		if (38 in keysDown) { // Player holding up
+		if (38 in keysDown) { // Up
 			car.y -= car.speed * modifier;
 		}
-		if (40 in keysDown) { // Player holding down
+		if (40 in keysDown) { // Down
 			car.y += car.speed * modifier;
 		}
 		if (37 in keysDown) { // Left
@@ -169,55 +208,64 @@
 			car.y = 0;
 		}
 
-		// Increase wall width
-		secPlayed = (Date.now() - startTS) / 1000;
-		proportion = 10;
+		car.pointBL = Point(
+			car.x,
+			car.y + car.height,
+			car.pointBL
+		);
 
-		wall.width = wall.initialWidth + (wall.initialWidth / proportion * secPlayed);
-		if (wall.width >= wall.maxWidth) {
-			wall.width = wall.maxWidth;
-		}
-
+		car.pointTR = Point(
+			car.x + car.width,
+			car.y,
+			car.pointTR
+		);
+		
 		// Move wall
 		var initialSpeed = 5;
 		var speedProportion = 2;
-		var speedIncreaseOverTime = secPlayed / speedProportion;
+		var speedIncreaseOverTime = getSecPlayed() / speedProportion;
 		var maxSpeed = 10;
 		var resultedSpeed = initialSpeed + speedIncreaseOverTime;
 		if (resultedSpeed >= maxSpeed) {
 			resultedSpeed = maxSpeed;
 		}
 
-		wall.y = wall.y + resultedSpeed;
+		walls.forEach(function(wall, wallIndex){
 
-		if (wall.y > canvas.height) {
-			resetWall();
-			++wallsAvoided;
-		}
+			wall.y = wall.y + resultedSpeed;
 
-		// Are they touching?
-		car.pointBL = Point(
-			car.x,
-			car.y + car.height,
-			car.pointBL
-		);
-		car.pointTR = Point(
-			car.x + car.width,
-			car.y,
-			car.pointTR
-		);
-		wall.pointBL = Point(
-			wall.x,
-			wall.y + wall.height,
-			wall.pointBL
-		);
-		wall.pointTR = Point(
-			wall.x + wall.width,
-			wall.y,
-			wall.pointTR
-		);
+			// Spawn new wall
+			if (walls.length < 2 && wall.y > canvas.height / 2) {
+				walls.push(createWall());
+			}
 
-		isGameOver = doOverlap(car.pointBL, car.pointTR, wall.pointBL, wall.pointTR);
+			// Delete obj
+			if (wall.y > canvas.height) {
+				walls.splice(wallIndex, 1);
+				walls.push(createWall());
+				++wallsAvoided;
+			}
+
+			if (!isGameOver) {
+
+				// Are they touching?
+				wall.pointBL = Point(
+					wall.x,
+					wall.y + wall.height,
+					wall.pointBL
+				);
+
+				wall.pointTR = Point(
+					wall.x + wall.width,
+					wall.y,
+					wall.pointTR
+				);
+
+				isGameOver = doOverlap(car.pointBL, car.pointTR, wall.pointBL, wall.pointTR);
+
+			}
+
+		});
 
 	};
 
@@ -229,14 +277,18 @@
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 		// Wall
-		ctx.fillStyle = wall.bgColor;
+		walls.forEach(function(wall){
 
-		ctx.fillRect(
-			wall.x, // x
-			wall.y, // y
-			wall.width, // w
-			wall.height // h
-		);
+			ctx.fillStyle = wall.bgColor;
+
+			ctx.fillRect(
+				wall.x, // x
+				wall.y, // y
+				wall.width, // w
+				wall.height // h
+			);
+
+		});
 
 		// Car
 		ctx.fillStyle = car.bgColor;
