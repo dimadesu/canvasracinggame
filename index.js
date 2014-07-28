@@ -3,8 +3,15 @@
 	// Create the canvas
 	window.canvas = document.getElementById("canvas");
 	var ctx = canvas.getContext("2d");
-	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;
+	
+	function setCanvasDimensions () {
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+	}
+
+	setCanvasDimensions();
+
+	$(window).resize(setCanvasDimensions);
 
 	var then, // timestamp
 		startTS, // timestamp
@@ -16,6 +23,7 @@
 		isGameOver,
 		isPaused,
 		pauseTimeoutId,
+		keysUp,
 		keysDown;
 
 	function initVars () {
@@ -25,7 +33,7 @@
 
 		// Game objects
 		car = {
-			speed: 1400, // movement in pixels per second
+			speed: 1000, // movement in pixels per second
 			width: 60,
 			height: 100,
 			bgColor: "red"
@@ -51,15 +59,18 @@
 		pauseTimeoutId = undefined;
 
 		// Handle keyboard controls
-		keysDown = {};
+		keysDown = {},
+		keysUp = {};
 	}
 
 	window.addEventListener("keydown", function (e) {
 		keysDown[e.keyCode] = true;
+		delete keysUp[e.keyCode];
 	}, false);
 
 	window.addEventListener("keyup", function (e) {
 		delete keysDown[e.keyCode];
+		keysUp[e.keyCode] = true;
 	}, false);
 
 	// Reset the game when the player catches a wall
@@ -70,11 +81,7 @@
 
 	function resetWall () {
 		// Throw the wall somewhere on the screen randomly
-		wall.x = Math.random() * canvas.width;
-		if (wall.x + wall.width > canvas.width) {
-			wall.x = canvas.width  - wall.width;
-		}
-
+		wall.x = Math.random() * (canvas.width - wall.width);
 		wall.y = 0 - wall.height;
 	}
 
@@ -108,31 +115,24 @@
 	function update (modifier) {
 		
 		// Space bar
-		if (32 in keysDown) {
+		if (32 in keysUp) {
+
+			delete keysUp[32];
 			
 			if (isGameOver) {
 				reset();
 			} else {
 				// Pause
-				if (!pauseTimeoutId) {
-					
-					isPaused = !isPaused;
+				
+				isPaused = !isPaused;
 
-					if (isPaused) {
-						pauseTS = Date.now();
-					} else {
-						var millisecondsPassed = Date.now() - pauseTS;
-						startTS = startTS + millisecondsPassed;
-					}
-
-					pauseTimeoutId = window.setTimeout(
-						function(){
-							pauseTimeoutId = undefined;
-						},
-						1000
-					);
-
+				if (isPaused) {
+					pauseTS = Date.now();
+				} else {
+					var millisecondsPassed = Date.now() - pauseTS;
+					startTS = startTS + millisecondsPassed;
 				}
+
 			}
 
 		}
@@ -143,12 +143,12 @@
 
 		// Car
 
-		/*if (38 in keysDown) { // Player holding up
+		if (38 in keysDown) { // Player holding up
 			car.y -= car.speed * modifier;
 		}
 		if (40 in keysDown) { // Player holding down
 			car.y += car.speed * modifier;
-		}*/
+		}
 		if (37 in keysDown) { // Left
 			car.x -= car.speed * modifier;
 		}
@@ -161,6 +161,12 @@
 			car.x = 0;
 		} else if (car.x + car.width >= canvas.width) {
 			car.x = canvas.width - car.width;
+		}
+
+		if ((car.y + car.height) >= canvas.height) {
+			car.y = canvas.height - car.height;
+		} else if (car.y <= 0) {
+			car.y = 0;
 		}
 
 		// Increase wall width
