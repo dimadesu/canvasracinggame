@@ -1,14 +1,14 @@
 (function(){
 
 	// Create the canvas
-	var canvas = document.createElement("canvas");
+	window.canvas = document.getElementById("canvas");
 	var ctx = canvas.getContext("2d");
-	canvas.width = 600;
-	canvas.height = 480;
-	document.body.appendChild(canvas);
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
 
 	var then, // timestamp
 		startTS, // timestamp
+		pauseTS,
 		secPlayed,
 		car,
 		wall,
@@ -118,6 +118,13 @@
 					
 					isPaused = !isPaused;
 
+					if (isPaused) {
+						pauseTS = Date.now();
+					} else {
+						var millisecondsPassed = Date.now() - pauseTS;
+						startTS = startTS + millisecondsPassed;
+					}
+
 					pauseTimeoutId = window.setTimeout(
 						function(){
 							pauseTimeoutId = undefined;
@@ -200,12 +207,9 @@
 		);
 		wall.pointTR = Point(
 			wall.x + wall.width,
-			wall.x,
+			wall.y,
 			wall.pointTR
 		);
-
-		horizMatch = car.x >= (wall.x - car.width) && car.x <= (wall.x + car.width);
-		vertMatch = car.y >= wall.y && car.y <= (wall.y + wall.height);
 
 		isGameOver = doOverlap(car.pointBL, car.pointTR, wall.pointBL, wall.pointTR);
 
