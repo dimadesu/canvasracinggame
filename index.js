@@ -25,7 +25,9 @@
 		isPaused,
 		pauseTimeoutId,
 		keysUp,
-		keysDown;
+		keysDown,
+		images,
+		isAllImagesLoaded;
 
 	
 
@@ -62,6 +64,40 @@
 
 		return wall;
 
+	}
+
+	function createImageWrap (src) {
+		
+		var imageWrap = {
+				isLoaded: false,
+			},
+			el = new Image();
+		
+		el.src = 'images/' + src;
+
+		el.onload = function () {
+			
+			loadedCounter = 0;
+
+			images.forEach(function(wrap, wrapIndex){
+				if(wrap.el.src === el.src) {
+					wrap.isLoaded = true;
+				}
+				loadedCounter++;
+			});
+
+			if(loadedCounter === images.length) {
+				isAllImagesLoaded = true;
+				var carImage = images[0].el;
+				car.width = carImage.width;
+				car.height = carImage.height;
+			}
+
+		};
+
+		imageWrap.el = el;
+		
+		return imageWrap;
 	}
 
 	function initVars () {
@@ -105,6 +141,12 @@
 		// Handle keyboard controls
 		keysDown = {};
 		keysUp = {};
+
+		// Images
+		images = [];
+		isAllImagesLoaded = false;
+
+		images.push( createImageWrap('car.png') );
 
 	}
 
@@ -291,8 +333,9 @@
 		});
 
 		// Car
-		ctx.fillStyle = car.bgColor;
-		ctx.fillRect(car.x, car.y, car.width, car.height);
+		if (isAllImagesLoaded) {
+			ctx.drawImage(images[0].el, car.x, car.y);
+		}
 
 		// Score
 		ctx.fillStyle = "white";
