@@ -28,7 +28,7 @@
 		keysDown,
 		images,
 		isAllImagesLoaded,
-		bgPattern;
+		wallPattern;
 
 	function initVars () {
 
@@ -52,7 +52,7 @@
 			x: 0,
 			y: 0,
 			width: 100,
-			height: 100,
+			height: 50,
 			bgColor: "purple"
 		};
 
@@ -79,8 +79,9 @@
 				car.width = wrap.el.width;
 				car.height = wrap.el.height;
 			}),
-			bg: createImage('bg.jpg', function(wrap){
-				bgPattern = ctx.createPattern(wrap.el, 'repeat');
+			bg: createImage('bg.jpg'),
+			wall: createImage('wall.png', function(wrap){
+				wallPattern = ctx.createPattern(wrap.el, 'repeat');
 			})
 		};
 
@@ -143,7 +144,9 @@
 			onAllImagesLoaded();
 		}
 
-		onLoadCb(currentWrap);
+		if(onLoadCb != null){
+			onLoadCb(currentWrap);
+		}
 
 	}
 
@@ -330,32 +333,54 @@
 
 	};
 
+	function repeatImage(imageEl, startX, startY, containerWidth, containerHeight) {
+
+		var repeatTimesHoriz = containerWidth / imageEl.width;
+		var repeatTimesVert = containerHeight / imageEl.height;
+		var widthModulus = containerWidth % imageEl.width;
+		var heightModulus = containerHeight % imageEl.height;
+		
+		for (var i=0; i <= repeatTimesVert; i++){
+			for (var j=0; j <= repeatTimesHoriz; j++){
+				
+				var x = startX + imageEl.width * j;
+				var y = startY + imageEl.height * i;
+				var width = imageEl.width;
+				var height = imageEl.height;
+				
+				// Last row and last row item
+				if (i === repeatTimesVert && j === repeatTimesHoriz) {
+					ctx.drawImage(imageEl, x, y, width, height, x, y, widthModulus, heightModulus);
+				// Last row. Cut width
+				} else if (i === repeatTimesVert) {
+					ctx.drawImage(imageEl, x, y, width, height, x, y, widthModulus, height);
+				// Last row item. Cut height
+				} else if (j === repeatTimesHoriz) {
+					ctx.drawImage(imageEl, x, y, width, height, x, y, width, heightModulus);
+				// Full image
+				} else {
+					ctx.drawImage(imageEl, x, y);
+				}
+
+			}
+		}
+
+	}
+
 	// Draw everything
 	function render () {
 		
 		// Bg
-		ctx.fillStyle = "gray";
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
-
 		if(images.bg.isLoaded){
-			ctx.fillStyle = bgPattern;
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			repeatImage(images.bg.el, 1, 1, canvas.width, canvas.height);
 		}
 
 		// Wall
-		walls.forEach(function(wall){
-
-			ctx.fillStyle = wall.bgColor;
-
-			ctx.fillRect(
-				wall.x, // x
-				wall.y, // y
-				wall.width, // w
-				wall.height // h
-			);
-
-		});
-
+		if(images.wall.isLoaded){
+			walls.forEach(function(wall){
+				repeatImage(images.wall.el, wall.x, wall.y, wall.width, wall.height)
+			});
+		}
 		
 		if (images.car.isLoaded) {
 
