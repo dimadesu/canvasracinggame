@@ -27,78 +27,8 @@
 		keysUp,
 		keysDown,
 		images,
-		isAllImagesLoaded;
-
-	
-
-	function getSecPlayed () {
-
-		return secPlayed = (Date.now() - startTS) / 1000;
-
-	}
-
-	function createWall() {
-
-		var wall = $.extend({}, defaultWall);
-
-		// Wall width
-
-		var proportion = 10;
-
-		wall.width = wall.initialWidth + (wall.initialWidth / proportion * getSecPlayed());
-
-		if (wall.width >= wall.maxWidth) {
-			wall.width = wall.maxWidth;
-		}
-
-		// Wall placement
-
-		wall.x = Math.random() * (canvas.width - wall.width);
-
-		// Wall bgColor
-
-		var randomColor1 = Math.round(Math.random() * 255);
-		var randomColor2 = Math.round(Math.random() * 255);
-		var randomColor3 = Math.round(Math.random() * 255);
-		wall.bgColor = 'rgb('+randomColor1+','+randomColor2+','+randomColor3+')';
-
-		return wall;
-
-	}
-
-	function createImageWrap (src) {
-		
-		var imageWrap = {
-				isLoaded: false,
-			},
-			el = new Image();
-		
-		el.src = 'images/' + src;
-
-		el.onload = function () {
-			
-			loadedCounter = 0;
-
-			images.forEach(function(wrap, wrapIndex){
-				if(wrap.el.src === el.src) {
-					wrap.isLoaded = true;
-				}
-				loadedCounter++;
-			});
-
-			if(loadedCounter === images.length) {
-				isAllImagesLoaded = true;
-				var carImage = images[0].el;
-				car.width = carImage.width;
-				car.height = carImage.height;
-			}
-
-		};
-
-		imageWrap.el = el;
-		
-		return imageWrap;
-	}
+		isAllImagesLoaded,
+		bgPattern;
 
 	function initVars () {
 
@@ -143,11 +73,100 @@
 		keysUp = {};
 
 		// Images
-		images = [];
 		isAllImagesLoaded = false;
+		images = {
+			car: createImage('car.png', function(wrap){
+				car.width = wrap.el.width;
+				car.height = wrap.el.height;
+			}),
+			bg: createImage('bg.jpg', function(wrap){
+				bgPattern = ctx.createPattern(wrap.el, 'repeat');
+			})
+		};
 
-		images.push( createImageWrap('car.png') );
+	}
 
+	function getSecPlayed () {
+
+		return secPlayed = (Date.now() - startTS) / 1000;
+
+	}
+
+	function createWall() {
+
+		var wall = $.extend({}, defaultWall);
+
+		// Wall width
+
+		var proportion = 10;
+
+		wall.width = wall.initialWidth + (wall.initialWidth / proportion * getSecPlayed());
+
+		if (wall.width >= wall.maxWidth) {
+			wall.width = wall.maxWidth;
+		}
+
+		// Wall placement
+
+		wall.x = Math.random() * (canvas.width - wall.width);
+
+		// Wall bgColor
+
+		var randomColor1 = Math.round(Math.random() * 255);
+		var randomColor2 = Math.round(Math.random() * 255);
+		var randomColor3 = Math.round(Math.random() * 255);
+		wall.bgColor = 'rgb('+randomColor1+','+randomColor2+','+randomColor3+')';
+
+		return wall;
+
+	}
+
+	function onImageLoad (loadedEl, onLoadCb) {
+
+		loadedCounter = 0;
+
+		var currentWrap;
+
+		$.each(
+			images,
+			function(wrapIndex, wrap){
+				if(wrap.el.src === loadedEl.src) {
+					wrap.isLoaded = true;
+					currentWrap = wrap;
+				}
+				loadedCounter++;
+			}
+		);
+
+		if(loadedCounter === Object.keys(images).length) {
+			isAllImagesLoaded = true;
+			onAllImagesLoaded();
+		}
+
+		onLoadCb(currentWrap);
+
+	}
+
+	function onAllImagesLoaded () {
+	}
+
+	function createImage (src, onLoadCb) {
+		
+		var wrap,
+			el = new Image();
+		
+		el.src = 'images/' + src;
+
+		el.onload = function () {
+			onImageLoad(el, onLoadCb);
+		};
+
+		wrap = {
+			el: el,
+			isLoaded: false,
+		};
+		
+		return wrap;
 	}
 
 	window.addEventListener("keydown", function (e) {
@@ -318,6 +337,11 @@
 		ctx.fillStyle = "gray";
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+		if(images.bg.isLoaded){
+			ctx.fillStyle = bgPattern;
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+		}
+
 		// Wall
 		walls.forEach(function(wall){
 
@@ -332,9 +356,11 @@
 
 		});
 
-		// Car
-		if (isAllImagesLoaded) {
-			ctx.drawImage(images[0].el, car.x, car.y);
+		
+		if (images.car.isLoaded) {
+
+			// Car
+			ctx.drawImage(images.car.el, car.x, car.y);
 		}
 
 		// Score
