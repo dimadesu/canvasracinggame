@@ -79,11 +79,13 @@
 				car.width = wrap.el.width;
 				car.height = wrap.el.height;
 			}),
-			bg: createImage('bg.jpg'),
-			wall: createImage('wall.png', function(wrap){
-				wallPattern = ctx.createPattern(wrap.el, 'repeat');
-			})
+			bg: createImage('bg.jpg', function(wrap){
+				wrap.y = -wrap.el.height;
+			}),
+			wall: createImage('wall.png')
 		};
+		images.bg.x = 0;
+		images.bg.y = 0;
 
 	}
 
@@ -331,12 +333,18 @@
 
 		});
 
+		// Bg
+		images.bg.y = images.bg.y + 10;
+		if (images.bg.y == 0) {
+			images.bg.y = -images.bg.el.height;
+		}
+
 	};
 
 	function repeatImage(imageEl, startX, startY, containerWidth, containerHeight) {
 
-		var repeatTimesHoriz = containerWidth / imageEl.width;
-		var repeatTimesVert = containerHeight / imageEl.height;
+		var repeatTimesHoriz = Math.floor(containerWidth / imageEl.width);
+		var repeatTimesVert = Math.floor(containerHeight / imageEl.height);
 		var widthModulus = containerWidth % imageEl.width;
 		var heightModulus = containerHeight % imageEl.height;
 		
@@ -350,13 +358,13 @@
 				
 				// Last row and last row item
 				if (i === repeatTimesVert && j === repeatTimesHoriz) {
-					ctx.drawImage(imageEl, x, y, width, height, x, y, widthModulus, heightModulus);
-				// Last row. Cut width
+					ctx.drawImage(imageEl, 0, 0, widthModulus, heightModulus, x, y, widthModulus, heightModulus);
+				// Last row. Cut height
 				} else if (i === repeatTimesVert) {
-					ctx.drawImage(imageEl, x, y, width, height, x, y, widthModulus, height);
-				// Last row item. Cut height
+					ctx.drawImage(imageEl, 0, 0, width, heightModulus, x, y, width, heightModulus);
+				// Last row item. Cut width
 				} else if (j === repeatTimesHoriz) {
-					ctx.drawImage(imageEl, x, y, width, height, x, y, width, heightModulus);
+					ctx.drawImage(imageEl, 0, 0, widthModulus, height, x, y, widthModulus, height);
 				// Full image
 				} else {
 					ctx.drawImage(imageEl, x, y);
@@ -372,7 +380,13 @@
 		
 		// Bg
 		if(images.bg.isLoaded){
-			repeatImage(images.bg.el, 1, 1, canvas.width, canvas.height);
+			repeatImage(
+				images.bg.el,
+				images.bg.x,
+				images.bg.y,
+				canvas.width,
+				canvas.height + images.bg.el.height
+			);
 		}
 
 		// Wall
