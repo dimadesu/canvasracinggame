@@ -13,24 +13,44 @@
 
 	$(window).resize(setCanvasDimensions);
 
-	var then, // timestamp
+	var w,
+		requestAnimationFrame,
+		now,
+		delta,
+		then, // timestamp
 		startTS, // timestamp
-		pauseTS,
-		secPlayed,
+		pauseTS, // ts milliseconds
+		secPlayed, // sec
+		// Objects
 		car,
 		walls,
 		defaultWall,
+		// Counter
 		wallsAvoided,
+		i,
+		j,
+		// Pause and game over states
 		isGameOver,
 		isPaused,
 		pauseTimeoutId,
+		// Keys
 		keysUp,
 		keysDown,
+		// Images
 		images,
 		isAllImagesLoaded,
-		wallPattern;
+		wallPattern,
+		// Speed
+		initialSpeed,
+		speedProportion,
+		speedIncreaseOverTime,
+		maxSpeed,
+		resultedSpeed;
 
 	function initVars () {
+
+		w = window;
+		requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
 
 		then = Date.now();
 		startTS = Date.now();
@@ -86,6 +106,11 @@
 		};
 		images.bg.x = 0;
 		images.bg.y = 0;
+
+		// Speed
+		initialSpeed = 500;
+		speedProportion = 0.1;
+		maxSpeed = 10000;
 
 	}
 
@@ -286,19 +311,16 @@
 			car.pointTR
 		);
 		
-		// Move wall
-		var initialSpeed = 5;
-		var speedProportion = 2;
-		var speedIncreaseOverTime = getSecPlayed() / speedProportion;
-		var maxSpeed = 10;
-		var resultedSpeed = initialSpeed + speedIncreaseOverTime;
+		// Move wall and bg
+		speedIncreaseOverTime = getSecPlayed() / speedProportion;
+		resultedSpeed = initialSpeed + speedIncreaseOverTime;
 		if (resultedSpeed >= maxSpeed) {
 			resultedSpeed = maxSpeed;
 		}
 
 		walls.forEach(function(wall, wallIndex){
 
-			wall.y = wall.y + resultedSpeed;
+			wall.y = wall.y + resultedSpeed * modifier;
 
 			// Spawn new wall
 			if (walls.length < 2 && wall.y > canvas.height / 2) {
@@ -334,9 +356,9 @@
 		});
 
 		// Bg
-		images.bg.y = images.bg.y + 10;
-		if (images.bg.y == 0) {
-			images.bg.y = -images.bg.el.height;
+		images.bg.y = images.bg.y + resultedSpeed * modifier;
+		if (images.bg.y >= 0) {
+			images.bg.y = -(images.bg.el.height + images.bg.y);
 		}
 
 	};
@@ -347,9 +369,16 @@
 		var repeatTimesVert = Math.floor(containerHeight / imageEl.height);
 		var widthModulus = containerWidth % imageEl.width;
 		var heightModulus = containerHeight % imageEl.height;
+		// FF doesn't like when width or height is smaller then 1
+		if (widthModulus < 1) {
+			widthModulus = 1;
+		}
+		if (heightModulus < 1) {
+			heightModulus = 1;
+		}
 		
-		for (var i=0; i <= repeatTimesVert; i++){
-			for (var j=0; j <= repeatTimesHoriz; j++){
+		for (i=0; i <= repeatTimesVert; i++){
+			for (j=0; j <= repeatTimesHoriz; j++){
 				
 				var x = startX + imageEl.width * j;
 				var y = startY + imageEl.height * i;
@@ -378,6 +407,8 @@
 	// Draw everything
 	function render () {
 		
+		//ctx.clearRect(0, 0, canvas.width, canvas.height);
+
 		// Bg
 		if(images.bg.isLoaded){
 			repeatImage(
@@ -424,21 +455,16 @@
 		}
 	};
 
-	// Cross-browser support for requestAnimationFrame
-	var w = window;
-	requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
-
 	// The main game loop
 	function main () {
-		var now = Date.now();
-		var delta = now - then;
+		now = Date.now();
+		delta = now - then;
 
 		update(delta / 1000);
 		render();
 
 		then = now;
 
-		// Request to do this again ASAP
 		requestAnimationFrame(main);
 	};
 	reset();
