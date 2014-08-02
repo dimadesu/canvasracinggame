@@ -39,7 +39,6 @@
 		// Images
 		images,
 		isAllImagesLoaded,
-		wallPattern,
 		// Speed
 		initialSpeed,
 		speedProportion,
@@ -72,7 +71,7 @@
 			x: 0,
 			y: 0,
 			width: 100,
-			height: 50,
+			height: 100,
 			bgColor: "purple"
 		};
 
@@ -193,7 +192,7 @@
 
 		wrap = {
 			el: el,
-			isLoaded: false,
+			isLoaded: false
 		};
 		
 		return wrap;
@@ -212,7 +211,7 @@
 	// Reset the game when the player catches a wall
 	function reset () {
 		initVars();
-	};
+	}
 
 	function doOverlap(l1, r1, l2, r2) {
 	    // If one rectangle is on left side of other
@@ -242,7 +241,7 @@
 
 	// Update game objects
 	function update (modifier) {
-		
+
 		// Space bar
 		if (32 in keysUp) {
 
@@ -318,17 +317,18 @@
 			resultedSpeed = maxSpeed;
 		}
 
-		walls.forEach(function(wall, wallIndex){
+        var wallsCached = walls.slice();// Copy array
+        wallsCached.forEach(function(wall, wallIndex){
 
-			wall.y = wall.y + resultedSpeed * modifier;
+            wall.y += resultedSpeed * modifier;
 
 			// Spawn new wall
-			if (walls.length < 2 && wall.y > canvas.height / 2) {
+			if (wallsCached.length < 2 && wall.y > canvas.height / 2) {
 				walls.push(createWall());
 			}
 
 			// Delete obj
-			if (wall.y > canvas.height) {
+			if (wall.y >= canvas.height) {
 				walls.splice(wallIndex, 1);
 				walls.push(createWall());
 				++wallsAvoided;
@@ -358,10 +358,10 @@
 		// Bg
 		images.bg.y = images.bg.y + resultedSpeed * modifier;
 		if (images.bg.y >= 0) {
-			images.bg.y = -(images.bg.el.height + images.bg.y);
+			images.bg.y = -(images.bg.el.height - images.bg.y);
 		}
 
-	};
+	}
 
 	function repeatImage(imageEl, startX, startY, containerWidth, containerHeight) {
 
@@ -453,7 +453,7 @@
 			ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2);
 			ctx.fillText("Press Space to restart", canvas.width / 2, canvas.height / 2 + 30);
 		}
-	};
+	}
 
 	// The main game loop
 	function main () {
@@ -466,7 +466,7 @@
 		then = now;
 
 		requestAnimationFrame(main);
-	};
+	}
 	reset();
 	main();
 
