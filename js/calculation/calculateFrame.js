@@ -18,7 +18,7 @@ app.calculateFrame = function (modifier) {
             } else {
                 // Unpaused
                 var millisecondsPassed = Date.now() - app.pauseTS;
-                app.startTS = app.startTS + app.millisecondsPassed;
+                app.startTS = app.startTS + millisecondsPassed;
             }
 
         }
