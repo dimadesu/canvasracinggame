@@ -25,6 +25,7 @@
 		car,
 		walls,
 		defaultWall,
+        wallsVertSpace,
 		// Counter
 		wallsAvoided,
 		i,
@@ -82,6 +83,8 @@
 
 		walls = [createWall()];
 
+        wallsVertSpace = canvas.height * 3 / 4;
+
 		wallsAvoided = 0;
 		isGameOver = false;
 		isPaused = false;
@@ -107,9 +110,9 @@
 		images.bg.y = 0;
 
 		// Speed
-		initialSpeed = 500;
+		initialSpeed = 200;
 		speedProportion = 0.1;
-		maxSpeed = 10000;
+		maxSpeed = 1000;
 
 	}
 
@@ -317,20 +320,19 @@
 			resultedSpeed = maxSpeed;
 		}
 
-        var wallsCached = walls.slice();// Copy array
-        wallsCached.forEach(function(wall, wallIndex){
+        walls.forEach(function(wall, wallIndex){
 
             wall.y += resultedSpeed * modifier;
 
-			// Spawn new wall
-			if (wallsCached.length < 2 && wall.y > canvas.height / 2) {
-				walls.push(createWall());
+            // Spawn new wall
+            var isLast = wallIndex + 1 === walls.length;
+			if (isLast && walls[0].y > wallsVertSpace) {
+				walls.unshift(createWall());
 			}
 
 			// Delete obj
-			if (wall.y >= canvas.height) {
-				walls.splice(wallIndex, 1);
-				walls.push(createWall());
+			if (wall.y > canvas.height) {
+				walls.pop();
 				++wallsAvoided;
 			}
 
