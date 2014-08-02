@@ -79,7 +79,7 @@
 		defaultWall.y = -defaultWall.height;
 
 		defaultWall.initialWidth = defaultWall.width;
-		defaultWall.maxWidth = canvas.width * 60 / 100;
+		defaultWall.maxWidth = canvas.width / 5;
 
 		walls = [createWall()];
 
