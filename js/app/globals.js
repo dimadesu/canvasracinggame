@@ -1,6 +1,4 @@
-var app = {
-    canvas: null,
-    ctx: null,
+define({
     requestAnimationFrame: null,
     now: null,
     delta: null,
@@ -31,4 +29,4 @@ var app = {
     speedIncreaseOverTime: null,
     maxSpeed: null,
     resultedSpeed: null
-};
+});
