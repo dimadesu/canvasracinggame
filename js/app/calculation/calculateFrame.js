@@ -4,11 +4,11 @@ define(
         'globals',
         'objects/canvas/canvas',
         'custom-libs/collision',
-        'calculation/secondsPlayed',
         'objects/wall/wallFactory',
-        'calculation/reset'
+        'calculation/reset',
+        'objects/grid/grid'
     ],
-    function(globals, canvas, collision, secondsPlayed, wallFactory, reset){
+    function(globals, canvas, collision, wallFactory, reset, grid){
 
         function calculateFrame (modifier) {
 
@@ -48,19 +48,40 @@ define(
             if (40 in globals.keysDown) { // Down
                 globals.car.y += globals.car.speed * modifier;
             }
-            if (37 in globals.keysDown) { // Left
-                globals.car.x -= globals.car.speed * modifier;
-            }
-            if (39 in globals.keysDown) { // Right
-                globals.car.x += globals.car.speed * modifier;
+
+            function skipKeyStrokes(callback) {
+                if (globals.isKeySkip === true) return;
+                globals.isKeySkip = true;
+                callback();
             }
 
+            var cell = grid[0];
+
+            if (37 in globals.keysDown) { // Left
+                skipKeyStrokes(
+                    function () {
+                        if(globals.activeCellIndex === 0) return;
+                        globals.activeCellIndex--;
+                    }
+                );
+            }
+            if (39 in globals.keysDown) { // Right
+                skipKeyStrokes(
+                    function () {
+                        if(globals.activeCellIndex === (globals.cellsTotal - 1)) return;
+                        globals.activeCellIndex++;
+                    }
+                );
+            }
+
+            globals.car.x = globals.activeCellIndex * cell.width + (cell.width / 2 - globals.car.width / 2);
+
             // Car position
-            if (globals.car.x <= 0) {
+            /*if (globals.car.x <= 0) {
                 globals.car.x = 0;
             } else if (globals.car.x + globals.car.width >= canvas.inst.width) {
                 globals.car.x = canvas.inst.width - globals.car.width;
-            }
+            }*/
 
             if ((globals.car.y + globals.car.height) >= canvas.inst.height) {
                 globals.car.y = canvas.inst.height - globals.car.height;
@@ -81,7 +102,7 @@ define(
             );
 
             // Move wall and bg
-            globals.speedIncreaseOverTime = secondsPlayed() / globals.speedProportion;
+            globals.speedIncreaseOverTime = globals.secondsPlayed() / globals.speedProportion;
             globals.resultedSpeed = globals.initialSpeed + globals.speedIncreaseOverTime;
             if (globals.resultedSpeed >= globals.maxSpeed) {
                 globals.resultedSpeed = globals.maxSpeed;
@@ -94,7 +115,7 @@ define(
                 // Spawn new wall
                 var isLast = wallIndex + 1 === globals.walls.length;
                 if (isLast && globals.walls[0].y > globals.wallsVertSpace) {
-                    globals.walls.unshift(wallFactory.createWall());
+                    globals.walls.unshift(wallFactory.createWall(globals));
                 }
 
                 // Delete obj
@@ -118,7 +139,7 @@ define(
                         wall.pointTR
                     );
 
-                    globals.isGameOver = collision.doOverlap(globals.car.pointBL, globals.car.pointTR, wall.pointBL, wall.pointTR);
+                    //globals.isGameOver = collision.doOverlap(globals.car.pointBL, globals.car.pointTR, wall.pointBL, wall.pointTR);
 
                 }
 

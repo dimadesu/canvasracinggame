@@ -2,17 +2,18 @@ define(
     [
         'globals',
         'objects/canvas/canvas',
-        'custom-libs/imageRepeat'
+        'custom-libs/imageRepeat',
+        'objects/grid/grid'
     ],
-    function(globals, canvas, imageRepeat){
+    function(globals, canvas, imageRepeat, grid){
         
         // Draw everything
         function render () {
         
-            //canvas.ctx.clearRect(0, 0, canvas.inst.width, canvas.inst.height);
+            canvas.ctx.clearRect(0, 0, canvas.inst.width, canvas.inst.height);
         
             // Bg
-            if(globals.images.bg.isLoaded){
+            /*if(globals.images.bg.isLoaded){
                 imageRepeat(
                     globals.images.bg.el,
                     globals.images.bg.x,
@@ -20,7 +21,18 @@ define(
                     canvas.inst.width,
                     canvas.inst.height + globals.images.bg.el.height
                 );
-            }
+            }*/
+
+            // Grid
+            grid.forEach(function(cell, index){
+                canvas.ctx.fillStyle = cell.bgColor;
+                canvas.ctx.fillRect(
+                    cell.x,
+                    0,
+                    cell.width,
+                    canvas.inst.height
+                )
+            });
         
             // Wall
             if(globals.images.wall.isLoaded){
@@ -33,7 +45,6 @@ define(
         
             // Car
             if (globals.images.car.isLoaded) {
-        
                 canvas.ctx.drawImage(globals.images.car.el, globals.car.x, globals.car.y);
             }
         

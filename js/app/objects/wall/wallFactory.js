@@ -1,15 +1,21 @@
 define(
-    ['globals', 'jquery', 'calculation/secondsPlayed', 'objects/canvas/canvas'],
-    function(globals, $, secondsPlayed, canvas) {
+    [
+        'jquery',
+        'objects/canvas/canvas',
+        'helpers/rgba'
+    ],
+    function($, canvas, rgba) {
 
         var wallFactory = {
 
-            createWall: function () {
+            // Note: have to pass globals since I can't import globals into this module or else
+            // there will be circular dependency
+            createWall: function (globals) {
 
                 var wall = $.extend({}, globals.defaultWall);
                 var proportion = 10;
 
-                wall.width = wall.initialWidth + (wall.initialWidth / proportion * secondsPlayed());
+                wall.width = wall.initialWidth + (wall.initialWidth / proportion * globals.secondsPlayed());
 
                 if (wall.width >= wall.maxWidth) {
                     wall.width = wall.maxWidth;
@@ -24,7 +30,7 @@ define(
                 var randomColor1 = Math.round(Math.random() * 255);
                 var randomColor2 = Math.round(Math.random() * 255);
                 var randomColor3 = Math.round(Math.random() * 255);
-                wall.bgColor = 'rgba(' + randomColor1 + ',' + randomColor2 + ',' + randomColor3 + ',0.2)';
+                wall.bgColor = rgba(0.2);
 
                 return wall;
 

@@ -1,12 +1,11 @@
 define(
     [
         'globals',
-        'calculation/initGlobals',
         'calculation/calculateFrame',
         'calculation/render',
         'controls/keyboard'
     ],
-    function (globals, initGlobals, calculateFrame, render, keyboard) {
+    function (globals, calculateFrame, render, keyboard) {
 
         function main () {
             globals.now = Date.now();
@@ -16,9 +15,6 @@ define(
             globals.then = globals.now;
             globals.requestAnimationFrame.call(window, main);
         }
-
-        initGlobals();
-        keyboard.addEventListeners();
 
         main();
 

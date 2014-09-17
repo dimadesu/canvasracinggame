@@ -1,4 +1,4 @@
-define(['objects/image/imageEventCallbacks'], function(imageEventCallbacks){
+define(function(){
 
     var imageFactory = {
         createImage: function (src, onLoadCb) {
@@ -9,7 +9,9 @@ define(['objects/image/imageEventCallbacks'], function(imageEventCallbacks){
             el.src = 'images/' + src;
 
             el.onload = function () {
-                imageEventCallbacks.onImageLoad(el, onLoadCb);
+                require(['objects/image/imageEventCallbacks'], function (imageEventCallbacks) {
+                    imageEventCallbacks.onImageLoad(el, onLoadCb);
+                });
             };
 
             wrap = {

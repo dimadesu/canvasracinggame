@@ -13,10 +13,13 @@ define(
 
             window.addEventListener("keyup", function (e) {
                 delete globals.keysDown[e.keyCode];
+                globals.isKeySkip = false;
                 globals.keysUp[e.keyCode] = true;
             }, false);
 
         };
+
+        keyboard.addEventListeners();
 
         return keyboard;
 
