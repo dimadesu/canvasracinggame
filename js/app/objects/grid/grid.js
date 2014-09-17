@@ -5,12 +5,11 @@ define(
     ],
     function (rgba, globals) {
         var grid = [];
-        var cellWidth = 100;
         for(var index = 0; index < globals.cellsTotal; index++){
             var cellInst = {
-                width: cellWidth,
-                x: cellWidth * index,
-                bgColor: rgba(0.2)
+                width: globals.cellWidth,
+                x: globals.cellWidth * index,
+                bgColor: rgba(0.5)
             };
             grid.push(cellInst);
         }

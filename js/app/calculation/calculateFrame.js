@@ -139,7 +139,7 @@ define(
                         wall.pointTR
                     );
 
-                    //globals.isGameOver = collision.doOverlap(globals.car.pointBL, globals.car.pointTR, wall.pointBL, wall.pointTR);
+                    globals.isGameOver = collision.doOverlap(globals.car.pointBL, globals.car.pointTR, wall.pointBL, wall.pointTR);
 
                 }
 

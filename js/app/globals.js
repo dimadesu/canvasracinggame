@@ -37,9 +37,10 @@ define(
             speedIncreaseOverTime: null,
             maxSpeed: null,
             resultedSpeed: null,
-            // Etc.
+            // Grid
             cellsTotal: null,
-            activeCellIndex: null
+            activeCellIndex: null,
+            cellWidth: null
         };
 
         globals.secondsPlayed = function () {
@@ -58,8 +59,10 @@ define(
 
             // Game objects
 
-            globals.cellsTotal = 6;
+            // Grid
+            globals.cellsTotal = 6;// Number, not index
             globals.activeCellIndex = 2;
+            globals.cellWidth = 100;
 
             globals.car = {
                 speed: 1000, // movement in pixels per second
@@ -75,14 +78,14 @@ define(
             globals.defaultWall = {
                 x: 0,
                 y: 0,
-                width: 100,
-                height: 100
+                width: globals.cellWidth,
+                height: globals.cellWidth
             };
 
             globals.defaultWall.y = -globals.defaultWall.height;
 
             globals.defaultWall.initialWidth = globals.defaultWall.width;
-            globals.defaultWall.maxWidth = canvas.inst.width / 5;
+            globals.defaultWall.maxWidth = globals.cellsTotal * globals.cellWidth;
 
             globals.walls = [wallFactory.createWall(globals)];
 
